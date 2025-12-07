@@ -1,4 +1,3 @@
-// Guardian.js
 const { EmbedBuilder } = require("discord.js");
 const logger = require("../utils/logger");
 const path = require("path");
@@ -109,7 +108,7 @@ class Guardian {
 
         const errorLogChannelId = this.ERROR_LOG_CHANNEL_ID;
 
-        if (!errorLogChannelId || errorLogChannelId === 'HIER_KANAL_ID_EINSETZEN') {
+        if (!errorLogChannelId || errorLogChannelId === '1163164124683964507') {
             return logger.guardian('warn', `Hardcodierte 'ERROR_LOG_CHANNEL_ID' fehlt oder ist nicht ersetzt. Überspringe Discord-Log.`);
         }
 

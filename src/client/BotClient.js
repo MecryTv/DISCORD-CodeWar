@@ -8,6 +8,7 @@ const MessageService = require("../services/MessageService");
 const MediaService = require("../services/MediaService");
 const EmojiService = require("../services/EmojiService");
 const Guardian = require("../services/Guardian");
+const ModelService = require("../services/ModelService");
 
 class BotClient extends Client {
     constructor() {
@@ -63,7 +64,7 @@ class BotClient extends Client {
         const rest = new REST({version: "10"}).setToken(BOT.TOKEN);
 
         await rest.put(Routes.applicationCommands(BOT.CLIENT_ID), { body: commandArray })
-            .then(() => logger.info(`🚀  ${count} Commands geladen und registriert.`))
+            .then(() => logger.info(`🚀  ${count} Commands geladen`))
             .catch(err => {
                 Guardian.handleGeneric(`Fehler beim Registrieren der Slash Commands bei Discord. Grund`, "Discord API Error", err.stack);
             });
@@ -93,7 +94,7 @@ class BotClient extends Client {
                 }
             }
         }
-        logger.info(`🚀  ${count} Events geladen.`);
+        logger.info(`🚀  ${count} Events geladen`);
     }
 
     getAllFiles(dir) {
@@ -120,6 +121,7 @@ class BotClient extends Client {
         Guardian.initialize(this);
 
         try {
+            await ModelService.initialize();
             await this.loadAndRegisterCommands();
             await this.loadEvents();
 
@@ -127,6 +129,7 @@ class BotClient extends Client {
             logger.info(`💬  ${MessageService.getMessageCount()} Nachrichtendateien geladen`);
             logger.info(`🖼️ ${MediaService.getMediaCount()} Mediendateien geladen`);
             logger.info(`😃  ${EmojiService.getEmojiCount()} Emojis geladen`);
+            logger.info(`📊  ${ModelService.getModelCount()} Datenbankmodelle geladen`);
 
             await this.login(token);
 

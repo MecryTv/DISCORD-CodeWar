@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
         dialect: 'mariadb',
         logging: false,
         dialectOptions: {
-            charset: 'utf8mb4_general_ci'
+            collation: 'utf8mb4_general_ci'
         }
     }
 )
@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
 async function connectDB() {
     try {
         await sequelize.authenticate();
-        logger.info('✅ Database Connection has been established successfully.');
+        logger.info('✅  Database Connection successfully');
     } catch (error) {
         logger.error('❌ Unable to connect to the database:', error);
         process.exit(1);
