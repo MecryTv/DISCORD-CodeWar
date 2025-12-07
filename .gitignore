@@ -6,3 +6,4 @@ DISCORD-CodeWar.iml
 .env
 node_modules
 logs
+/src/generated/prisma
