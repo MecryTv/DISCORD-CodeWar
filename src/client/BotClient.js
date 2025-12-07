@@ -1,7 +1,7 @@
-require("dotenv").config();
 const {Client, Collection, GatewayIntentBits, REST, Routes} = require("discord.js");
 const fs = require("fs");
 const path = require("path");
+const { BOT } = require("../../config.json")
 const logger = require("../utils/logger");
 const ConfigService = require("../services/ConfigService");
 const MessageService = require("../services/MessageService");
@@ -55,14 +55,14 @@ class BotClient extends Client {
             }
         }
 
-        if (!process.env.CLIENT_ID || !process.env.TOKEN) {
+        if (!BOT || !BOT.CLIENT_ID || !BOT.TOKEN) {
             await Guardian.handleGeneric("CLIENT_ID oder TOKEN fehlt in der config.json. Der Bot kann nicht starten.", "Bot Initialization");
             process.exit(1);
         }
 
-        const rest = new REST({version: "10"}).setToken(process.env.TOKEN);
+        const rest = new REST({version: "10"}).setToken(BOT.TOKEN);
 
-        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commandArray })
+        await rest.put(Routes.applicationCommands(BOT.CLIENT_ID), { body: commandArray })
             .then(() => logger.info(`🚀  ${count} Commands geladen und registriert.`))
             .catch(err => {
                 Guardian.handleGeneric(`Fehler beim Registrieren der Slash Commands bei Discord. Grund`, "Discord API Error", err.stack);

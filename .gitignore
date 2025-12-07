@@ -3,7 +3,6 @@ DISCORD-CodeWar.iml
 .idea
 
 # Project
-.env
 node_modules
 logs
-/src/generated/prisma
+config.json
