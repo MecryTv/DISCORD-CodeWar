@@ -1,5 +1,6 @@
 const Event = require("../../structures/Events");
 const UserNode = require("../../models/user/UserNode");
+const Guardian = require("../../services/Guardian");
 
 class AddBaseNode extends Event {
   constructor(client) {
@@ -17,7 +18,7 @@ class AddBaseNode extends Event {
             }
         });
     } catch (error) {
-      console.error("Fehler beim Verarbeiten des guildMemberAdd Events:", error);
+      Guardian.handleEvent("Fehler beim Hinzufügen des Basis-UserNode.", "guildMemberAdd Event", error.stack);
     }
   }
 }
