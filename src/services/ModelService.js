@@ -36,31 +36,46 @@ class ModelService {
             return Guardian.handleGeneric(`Das Models-Verzeichnis (${modelsPath}) existiert nicht.`, 'ModelService Load');
         }
 
-        const modelFiles = fs.readdirSync(modelsPath).filter(file =>
-            file.endsWith('.js') && file !== 'index.js'
-        );
+        const walkDir = (dir) => {
+            let files = [];
+            const items = fs.readdirSync(dir);
 
-        for (const file of modelFiles) {
+            for (const item of items) {
+                const fullPath = path.join(dir, item);
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                    files = files.concat(walkDir(fullPath));
+                } else if (stat.isFile() && item.endsWith('.js') && item !== 'index.js') {
+                    files.push(fullPath);
+                }
+            }
+            return files;
+        };
+
+        const modelFiles = walkDir(modelsPath);
+
+        for (const filePath of modelFiles) {
+            const fileName = path.basename(filePath);
             try {
-                const filePath = path.join(modelsPath, file);
                 const modelDefinition = require(filePath);
 
                 if (typeof modelDefinition === 'function') {
                     const model = modelDefinition(sequelize);
-                    const modelName = model.name || path.basename(file, '.js');
+                    const modelName = model.name || path.basename(filePath, '.js');
                     this.models.set(modelName, model);
                 }
                 else if (modelDefinition && modelDefinition.tableName) {
-                    const modelName = modelDefinition.name || path.basename(file, '.js');
+                    const modelName = modelDefinition.name || path.basename(filePath, '.js');
                     this.models.set(modelName, modelDefinition);
                 } else {
                     Guardian.handleGeneric(
-                        `Model in Datei ${file} hat kein gültiges Format. Es sollte entweder eine Factory-Funktion oder ein Sequelize Model sein.`,
+                        `Model in Datei ${fileName} (Pfad: ${filePath}) hat kein gültiges Format. Es sollte entweder eine Factory-Funktion oder ein Sequelize Model sein.`,
                         'ModelService Load'
                     );
                 }
             } catch (error) {
-                Guardian.handleGeneric(`Fehler beim Laden des Models in Datei ${file}.`, 'ModelService Load', error.stack);
+                Guardian.handleGeneric(`Fehler beim Laden des Models in Datei ${fileName} (Pfad: ${filePath}).`, 'ModelService Load', error.stack);
             }
         }
 
