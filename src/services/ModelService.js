@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { sequelize, connectDB } = require('../database/db');
 const Guardian = require('./Guardian');
-const logger = require('../utils/logger');
 
 class ModelService {
     constructor() {
@@ -60,17 +59,21 @@ class ModelService {
             try {
                 const modelDefinition = require(filePath);
 
-                if (typeof modelDefinition === 'function') {
+                if (typeof modelDefinition === 'function' && !modelDefinition.prototype) {
                     const model = modelDefinition(sequelize);
                     const modelName = model.name || path.basename(filePath, '.js');
                     this.models.set(modelName, model);
-                }
-                else if (modelDefinition && modelDefinition.tableName) {
+
+                } else if (typeof modelDefinition === 'function' && modelDefinition.prototype && modelDefinition.init) {
+                    const modelName = modelDefinition.name || path.basename(filePath, '.js');
+                    this.models.set(modelName, modelDefinition);
+
+                } else if (modelDefinition && modelDefinition.tableName) {
                     const modelName = modelDefinition.name || path.basename(filePath, '.js');
                     this.models.set(modelName, modelDefinition);
                 } else {
                     Guardian.handleGeneric(
-                        `Model in Datei ${fileName} (Pfad: ${filePath}) hat kein gültiges Format. Es sollte entweder eine Factory-Funktion oder ein Sequelize Model sein.`,
+                        `Model in Datei ${fileName} (Pfad: ${filePath}) hat kein gültiges Format.`,
                         'ModelService Load'
                     );
                 }
