@@ -15,7 +15,7 @@ class Guardian {
     generateErrorId() {
         const timestamp = Math.floor(Date.now() / 1000);
         const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
-        return `PL-${timestamp}-${randomPart}`;
+        return `CW-${timestamp}-${randomPart}`;
     }
 
     /**
@@ -108,7 +108,7 @@ class Guardian {
 
         const errorLogChannelId = this.ERROR_LOG_CHANNEL_ID;
 
-        if (!errorLogChannelId || errorLogChannelId === '1163164124683964507') {
+        if (!errorLogChannelId) {
             return logger.guardian('warn', `Hardcodierte 'ERROR_LOG_CHANNEL_ID' fehlt oder ist nicht ersetzt. Überspringe Discord-Log.`);
         }
 
@@ -127,7 +127,7 @@ class Guardian {
 
         if (interaction) {
             const developerPingRoleId = this.DEVELOPER_PING_ROLE_ID;
-            if (developerPingRoleId && developerPingRoleId !== '1286386691925344390') {
+            if (developerPingRoleId) {
                 const developerRole = await interaction.guild.roles.fetch(developerPingRoleId).catch(() => null);
                 if (developerRole) {
                     contentToSend = `${developerRole}`;
