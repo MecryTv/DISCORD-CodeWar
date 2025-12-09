@@ -9,33 +9,27 @@ const UserNode = sequelize.define('UserNode', {
     },
     level: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 1
+        allowNull: false
     },
     shd: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 100
+        allowNull: false
     },
     atk: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 50
+        allowNull: false
     },
     eff: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 100
+        allowNull: false
     },
     kt: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 50
+        allowNull: false
     },
     db: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0
+        allowNull: false
     }
 }, {
   tableName: 'usernode',

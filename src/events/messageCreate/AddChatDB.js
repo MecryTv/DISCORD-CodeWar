@@ -1,12 +1,12 @@
 const Event = require("../../structures/Events");
-const UserNode = require("../../models/user/UserNode");
+const userNodeCache = require("../../cache/UserNodeCache");
 const Guardian = require("../../services/Guardian");
 
 class AddChatDB extends Event {
-  constructor(client) {
-    super(client, "messageCreate", false);
-    this.msgCounts = new Map();
-  }
+    constructor(client) {
+        super(client, "messageCreate", false);
+        this.msgCounts = new Map();
+    }
 
     async execute(message) {
         if (!message.inGuild() || message.author.bot) return;
@@ -19,15 +19,10 @@ class AddChatDB extends Event {
 
         if (newCount >= 20) {
             try {
-                const [user] = await UserNode.findOrCreate({
-                    where: {discordId: userId},
-                    defaults: {discordId: userId}
-                });
-
-                await user.increment('db', {by: 1});
+                await userNodeCache.increment(userId, 'db', 1);
                 this.msgCounts.set(userId, 0);
             } catch (error) {
-                Guardian.handleEvent("Failed to Add Chat DB", "messageCreate Event", error.stack);
+                Guardian.handleEvent("Failed to Add Chat DB to Cache", "messageCreate Event", error.stack);
             }
         }
     }

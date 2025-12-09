@@ -1,5 +1,5 @@
 const Event = require("../../structures/Events");
-const UserNode = require("../../models/user/UserNode")
+const userNodeCache = require("../../cache/UserNodeCache");
 const Guardian = require("../../services/Guardian");
 
 class AddVoiceKT extends Event {
@@ -34,15 +34,12 @@ class AddVoiceKT extends Event {
             this.counters.delete(userId);
             const finalKTCounter = ktCounter * 3;
 
-            try {
-                const [user] = await UserNode.findOrCreate({
-                    where: { discordId: userId },
-                    defaults: { discordId: userId }
-                });
-
-                await user.increment('kt', { by: finalKTCounter });
-            } catch (error) {
-                Guardian.handleEvent("Failed to Add Voice KT", "voiceStateUpdate Event", error.stack);
+            if (finalKTCounter > 0) {
+                try {
+                    await userNodeCache.increment(userId, 'kt', finalKTCounter);
+                } catch (error) {
+                    Guardian.handleEvent("Failed to Add Voice KT to Cache", "voiceStateUpdate Event", error.stack);
+                }
             }
         }
     }

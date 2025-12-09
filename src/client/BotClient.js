@@ -9,6 +9,7 @@ const MediaService = require("../services/MediaService");
 const EmojiService = require("../services/EmojiService");
 const Guardian = require("../services/Guardian");
 const ModelService = require("../services/ModelService");
+const CacheService = require("../services/CacheService");
 
 class BotClient extends Client {
     constructor() {
@@ -97,6 +98,34 @@ class BotClient extends Client {
         logger.info(`🚀  ${count} Events geladen`);
     }
 
+    async loadCacheNodes() {
+        const cachePath = path.join(__dirname, '../cache');
+
+        if (!fs.existsSync(cachePath)) {
+            logger.warn('⚠️  Cache-Verzeichnis existiert nicht. Erstelle es...');
+            fs.mkdirSync(cachePath, { recursive: true });
+            return 0;
+        }
+
+        const cacheFiles = this.getAllFiles(cachePath).filter(file => file.endsWith('.js'));
+        let count = 0;
+
+        for (const file of cacheFiles) {
+            try {
+                require(file);
+                count++;
+            } catch (error) {
+                Guardian.handleGeneric(
+                    `Fehler beim Laden der CacheNode-Datei: ${path.basename(file)}`,
+                    'CacheNode Loading',
+                    error.stack
+                );
+            }
+        }
+
+        return count;
+    }
+
     getAllFiles(dir) {
         try {
             const files = fs.readdirSync(dir, { withFileTypes: true });
@@ -122,6 +151,10 @@ class BotClient extends Client {
 
         try {
             await ModelService.initialize();
+            await CacheService.initialize();
+
+            const cacheNodeCount = await this.loadCacheNodes();
+
             await this.loadAndRegisterCommands();
             await this.loadEvents();
 
@@ -130,11 +163,39 @@ class BotClient extends Client {
             logger.info(`🖼️ ${MediaService.getMediaCount()} Mediendateien geladen`);
             logger.info(`😃  ${EmojiService.getEmojiCount()} Emojis geladen`);
             logger.info(`📊  ${ModelService.getModelCount()} Datenbankmodelle geladen`);
+            logger.info(`📦  ${cacheNodeCount} CacheNodes geladen`);
+            logger.info(`🔄  ${CacheService.getCacheNodeCount()} CacheNodes registriert`);
 
             await this.login(token);
 
+            process.on('SIGINT', async () => {
+                logger.warn('🛑  SIGINT empfangen, fahre Bot herunter...');
+                await this.gracefulShutdown();
+            });
+
+            process.on('SIGTERM', async () => {
+                logger.warn('🛑  SIGTERM empfangen, fahre Bot herunter...');
+                await this.gracefulShutdown();
+            });
+
         } catch (error) {
             await Guardian.handleGeneric(`Ein kritischer Fehler ist während des Bot-Starts aufgetreten: ${error.message}`, "Critical Startup Error");
+        }
+    }
+
+    async gracefulShutdown() {
+        try {
+            logger.info('🔄  Synchronisiere Cache zur Datenbank...');
+            await CacheService.shutdown();
+
+            logger.info('👋  Trenne Discord-Verbindung...');
+            this.destroy();
+
+            logger.session('end');
+            process.exit(0);
+        } catch (error) {
+            Guardian.handleGeneric('Fehler beim Herunterfahren', 'Shutdown', error.stack);
+            process.exit(1);
         }
     }
 }
