@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { sequelize, connectDB } = require('../database/db');
+const { sequelize, connectDB } = require('../database/mariadb');
 const Guardian = require('./Guardian');
 
 class ModelService {
